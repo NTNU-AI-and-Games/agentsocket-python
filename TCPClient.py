@@ -1,5 +1,7 @@
 import socket
 import json
+import datetime
+import random
 from MessageReceiver import MessageReceiver
 
 # Client to connect to UE4 tcp server
@@ -20,8 +22,6 @@ class Client:
     def run(self):
         self.socket.connect((self.host, self.port))
         self.ms.start() # Starts the run() method in ms (in a separate thread)
-        print(" - Login to your account")
-        print(" - Ready to write your commands")
         print("Your input:")
         while(True):
             c = input().strip().split()
@@ -49,18 +49,28 @@ class Client:
         self.ms = MessageReceiver(self)
         self.ms.start()
 
-    def disconnect(self):
+    def on_disconnect(self):
         self.socket.close()
         print(" - Disconnected")
 
-    def receive_message(self, msg):
-        print(msg)
-        data = json.loads(msg) #dictionary
-        #print(MessageParser.parse(data))
-        #print("Your input:")
+    def on_server_disconnect(self):
+        self.socket.close()
+        print(" - Server disconnected")
+
+    def on_receive_message(self, msg):
+        try:
+            data = json.loads(msg) #dictionary
+            #print(MessageParser.parse(data))
+            #print("Your input:")
+            print(data)
+        except json.decoder.JSONDecodeError:
+            print("Returned message is not JSON formatted")
+            print(msg)
 
     def send_payload(self, lst): # data is a list of string (commands)
-        data = {'command':lst[0],'value':lst[1]}
+        data = {'id': str(datetime.datetime.now().timestamp()) +"-"+ str(random.randint(1,500)), 
+            'command':lst[0],
+            'value':lst[1]}
         self.socket.send(json.dumps(data).encode()) #or sendall()
 
 if __name__ == '__main__':

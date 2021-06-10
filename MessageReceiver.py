@@ -10,15 +10,13 @@ class MessageReceiver(Thread):
         print("Listening for incoming msgs")
         # TODO: Make MessageReceiver receive and handle payloads
         while True:
-            # an error will be throw is the connection is not settled (such as if the server is down)
+            # An error will be throw is the connection is not settled (such as if the server is down)
             msg = self.client.socket.recv(1024) #will be cancelled by connection.shutdown(SHUT_RD)
-            print("Received msg")
-            if msg == b'': #indicates disconnection
-                #print(msg, " - message")
-                self.client.disconnect()
+            if msg == b'': # Indicates disconnection with the server
+                self.client.on_server_disconnect()
                 break
             else:
                 msg = msg.decode()
                 #print("inside ms, the message is:", msg)
                 #self.client.receivedMessage(msg)
-                Thread(target=self.client.receive_message, args = (msg,)).start() #new thread
+                Thread(target=self.client.on_receive_message, args = (msg,)).start() #new thread
