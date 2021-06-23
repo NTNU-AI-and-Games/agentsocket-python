@@ -3,6 +3,7 @@ import json
 import datetime
 import random
 import shlex
+import Environment as environment
 
 import time
 from MessageReceiver import MessageReceiver
@@ -84,7 +85,15 @@ class Client:
     def on_receive_message(self, msg):
         try:
             data = json.loads(msg)
-            print(data)
+            if (data["type"] == "STATE"):
+                environment.on_state_received(data)
+                print("states:", environment.states)
+            elif (data["type"] == "REWARD"):
+                environment.on_reward_received(data)
+                print("rewards:", environment.rewards)
+            elif (data["type"] == "ACK"):
+                if (data["Status"] != "OK"):
+                    print(data)
         except json.decoder.JSONDecodeError:
             print("Received message is not JSON formatted")
             print(msg)
@@ -120,7 +129,7 @@ class Client:
             else:
                 data['ActionState'] = lst[1]
         return data
-
+ 
 
 if __name__ == '__main__':
     try:
