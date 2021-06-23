@@ -7,7 +7,7 @@ class MessageReceiver(Thread):
         self.daemon = True #the thread will die out when the main thread ends
 
     def run(self):
-        print("Listening for incoming msgs")
+        print(" - Listening for incoming msgs")
         # TODO: Make MessageReceiver receive and handle payloads
         while True:
             # An error will be throw is the connection is not settled (such as if the server is down)
@@ -16,7 +16,13 @@ class MessageReceiver(Thread):
                 self.client.on_server_disconnect()
                 break
             else:
-                msg = msg.decode()
+                decoded_msg = ""
+                try:
+                    decoded_msg = msg.decode()
+                except:
+                    decoded_msg = "(message cannot be decoded)"
+                    print("Received message cannot be decoded. Message: ")
+                    print(msg)
                 #print("inside ms, the message is:", msg)
                 #self.client.receivedMessage(msg)
-                Thread(target=self.client.on_receive_message, args = (msg,)).start() #new thread
+                Thread(target=self.client.on_receive_message, args = (decoded_msg,)).start() #new thread
