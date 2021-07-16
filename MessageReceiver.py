@@ -11,7 +11,7 @@ class MessageReceiver(Thread):
         # TODO: Make MessageReceiver receive and handle payloads
         while True:
             # An error will be throw is the connection is not settled (such as if the server is down)
-            msg = self.client.socket.recv(1024) #will be cancelled by connection.shutdown(SHUT_RD)
+            msg = self.client.socket.recv(8001024) #will be cancelled by connection.shutdown(SHUT_RD)
             if msg == b'': # Indicates disconnection with the server
                 self.client.on_server_disconnect()
                 break

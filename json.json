@@ -1,0 +1,7 @@
+Example state reward response
+
+{
+    "action_ids": [1,2,3,4,5,6,7],
+    "state": "(Object) obj" ,
+    "reward": 23
+}
