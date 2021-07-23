@@ -30,26 +30,6 @@ def is_number(n):
     return is_number
 
 
-def walk_in_circle(client):
-    client.send_command("move_forward 1")
-    client.send_command("turn 0.5")
-
-def idle(client):
-    client.send_command("move_forward 0")
-    client.send_command("turn 0")
-
-# Will run the last command only
-def example1(client):
-    client.send_command("move_forward 0.3")
-    client.send_command("move_forward 0.1")
-
-
-
-
-
-
-
-
 class Client:
     def __init__(self, host=TCP_IP, port=TCP_PORT):
         self.host = host
@@ -70,25 +50,14 @@ class Client:
     def run(self):
         self.socket.connect((self.host, self.port))
         self.ms.start() # Starts the run() method in ms (in a separate thread)
-        print("Your input:")
         while(True):
-            c = input().strip()
-
-            # if c == 'a':
-            #     L = environment.states[0]['imageValue']
-            #     #print(L[-20:])
-            #     im = cv2.imdecode(np.array(L, dtype=np.uint8), cv2.IMREAD_COLOR)
-            #     cv2.imshow("Hey", im)
-            #     cv2.waitKey(100)
-
-            
             if len(environment.states) > 0:
                 try:
                     L = environment.states[-1]['imageValue']
                     im = cv2.imdecode(np.array(L, dtype=np.uint8), cv2.IMREAD_COLOR)
                     cv2.imshow("AgentSocket_agent001", im)
                     cv2.setWindowProperty("AgentSocket_agent001", cv2.WND_PROP_TOPMOST, 1)
-                    cv2.waitKey(100)
+                    cv2.waitKey(10)
                 except Exception:
                     pass
 
@@ -99,16 +68,19 @@ class Client:
                     pass
 
 
-            if len(c) > 0:
-                try:
-                    self.run_command(c) # send it without checking it
-                except:
-                    print(" - Reconnecting...", end="\r")
-                    self.connect()
-                    print(" - Reconnected", end="\n")
-                    self.run_command(c) # send it without checking it
-            else:
-                print(' - Write proper commands: <ActionType> <ActionState> <value>')
+            try:
+                #self.run_command("a") # send it without checking it
+                data = {'type': 'action', 'actions':[]}
+                data['actions'].append({'type':'action', 'name':'fire'})
+                data['actions'].append({'type':'action', 'name':'jump'})
+                data['actions'].append({'type':'key', 'key':'s'})
+                data['actions'].append({'type':'axis', 'key':'mousex', 'value': '10', 'state':'pressed'})
+                self.send_string(json.dumps(data))
+            except:
+                print(" - Reconnecting...", end="\r")
+                self.connect()
+                print(" - Reconnected", end="\n")
+                #self.run_command(c) # send it without checking it
 
 
     def connect(self):

@@ -4,6 +4,7 @@ import threading
 # Note: No need class, all members are global and static
 current_state = dict()     # Stores the current state of the world; no duplicated states
 states = []
+images = []
 rewards = []
 lock = threading.Lock()  # FIXME: Do we really need mutex here? We are only writing here from the messagereceiver thread, and only reading 
 
@@ -22,50 +23,8 @@ def on_reward_received(data):
     rewards.append(data)
 
 def on_step_received(data):
-    """Event for when tick messages are received
-    
-    example: {
-        "type": "tick",
-        "data": {
-            actionIds: []
-            state: {
-                players: [
-                    player1: {
-                        transform: {
-                            position: {
-                                x: 1,
-                                y: 2,
-                                z: 7
-                            },
-                            rotation: {
-                                ...
-                            }
-                        }
-                        dead: false,
-                        team: 1,
-                    },
-                    player2: {
-                        transform: {...}
-                        dead: true,
-                        team: 0,
-                    }
-                ],
-                building: [
-                    build1: {
-                        destroyed: false
-                    },
-                    platforms: [
-                        # created by the players
-                    ]
-                ]
-            },
-            reward: 4,
-        }
-    }
-
-    """
-    #print(data)
     states.append((data['state']))
+    rewards.append((data['reward']))
     print("length:", len(states))
     
    

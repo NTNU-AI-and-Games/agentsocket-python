@@ -36,8 +36,8 @@ class Action:   # Use AxisMapping instead?
 
     def to_dict(self) -> dict:
         return {
-            'ActionName': self.name,
+            'Name': self.name,
             'ActionType': self.type,
-            'value': self.value,
+            'Value': self.value,
         }
 
