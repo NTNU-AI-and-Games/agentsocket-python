@@ -17,7 +17,7 @@ from MessageReceiver import MessageReceiver
 
 #TCP_IP = "10.22.41.62"
 TCP_IP = "localhost"
-TCP_IP = "129.241.110.146"
+#TCP_IP = "129.241.110.146"
 TCP_PORT = 11111
 
 images = []
@@ -47,26 +47,15 @@ class Client:
                 self.run_command("fakeAction")  # This can be any string. AgentSocket will interpret it as an invalid action, while still respond with image 
                 
                 msg = self.socket.recv(8001024) # will be cancelled by connection.shutdown(SHUT_RD)
-                if msg == b'': # Indicates disconnection with the server
-                    self.on_server_disconnect()
-                    break
-                else:
-                    # Only accept the messages beginning with a PNG header
-                    if b'\x89PNG' == msg[:4]:
-                        #images.append(msg)
-                        try:
-                            im = cv2.imdecode(np.frombuffer(msg, np.uint8), cv2.IMREAD_COLOR)
-                            cv2.imshow("AgentSocket_agent001", im)
-                            cv2.setWindowProperty("AgentSocket_agent001", cv2.WND_PROP_TOPMOST, 1)
-                            cv2.waitKey(1)
-                        except Exception as e:
-                            print(e)
-                            pass
+                self.on_receive_message(msg)
+                
+                msg = self.socket.recv(8001024) # will be cancelled by connection.shutdown(SHUT_RD)
+                self.on_receive_message(msg)
                 
             except Exception:
-                print("Not connected. Try again..")
-                time.sleep(0.5)
-                self.connect()
+                break
+            
+            #time.sleep(0.1)
                 
     def connect(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -113,6 +102,19 @@ class Client:
 
     def send_string(self, string: str):
         self.socket.send(string.encode())
+
+
+    def on_receive_message(self, message):
+        if b'\x89PNG' == message[:4]:
+            #images.append(msg)
+            try:
+                im = cv2.imdecode(np.frombuffer(message, np.uint8), cv2.IMREAD_COLOR)
+                cv2.imshow("AgentSocket_agent001", im)
+                cv2.setWindowProperty("AgentSocket_agent001", cv2.WND_PROP_TOPMOST, 1)
+                cv2.waitKey(1)
+            except Exception as e:
+                #print(e)
+                pass
 
 
 if __name__ == '__main__':

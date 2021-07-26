@@ -17,7 +17,7 @@ from MessageReceiver import MessageReceiver
 
 #TCP_IP = "10.22.41.62"
 TCP_IP = "localhost"
-#TCP_IP = "129.241.110.146"
+TCP_IP = "129.241.110.146"
 TCP_PORT = 11111
 
 images = []
@@ -42,22 +42,33 @@ class Client:
     def run(self):
         self.connect()
         while(True):
-            # Receive two messages: Json and PNG
+            # Receive two messages: Json and
             try:
-                self.run_command("NoAction")  # This can be any string. AgentSocket will interpret it as an invalid action, while still respond with image 
-                response = self.socket.recv(80000024) # will be cancelled by connection.shutdown(SHUT_RD)
-                self.on_receive_response(response)
-                response = self.socket.recv(80000024) # will be cancelled by connection.shutdown(SHUT_RD)
-                self.on_receive_response(response)
-                # time.sleep(1)
-                # another_response = self.socket.recv(8388608) # will be cancelled by connection.shutdown(SHUT_RD)
-                # self.on_receive_response(another_response)
-                time.sleep(0.0001)
+                self.run_command("fakeAction")  # This can be any string. AgentSocket will interpret it as an invalid action, while still respond with image 
                 
+                msg = self.socket.recv(80001024) # will be cancelled by connection.shutdown(SHUT_RD)
+                if msg == b'': # Indicates disconnection with the server
+                    self.on_server_disconnect()
+                    break
+                else:
+                    # Only accept the messages beginning with a PNG header
+                    if b'\x89PNG' == msg[:4]:
+                        pass
+                    else:
+                        try:
+                            decodeFirst = msg[:5].decode()
+                            if decodeFirst[0] == '{':
+                                decoded = msg.decode()
+                                data = json.loads(decoded)
+                                if (data["type"] == "STEP"):
+                                    print(data)
+                                    environment.on_receive_step_response(data)
+                        except Exception:
+                            pass
                 
             except Exception:
                 print("Not connected. Try again..")
-                time.sleep(0.1)
+                time.sleep(0.5)
                 self.connect()
                 
     def connect(self):
@@ -105,43 +116,6 @@ class Client:
 
     def send_string(self, string: str):
         self.socket.send(string.encode())
-
-
-    def on_receive_response(self, response):
-        if response == b'': # Indicates disconnection with the server
-            self.on_server_disconnect()
-        else:
-            # Only accept the messages beginning with a PNG header
-            if b'\x89PNG' == response[:4]:
-                #images.append(msg)
-                try:
-                    raw_img_bytes = response
-                    self.on_receive_image_response(raw_img_bytes)
-                except Exception as e:
-                    pass
-            else:
-                try:
-                    decodeFirst = response[:2].decode()
-                    if decodeFirst[0] == '{':
-                        decoded = response.decode()
-                        data = json.loads(decoded)
-                        if (data["type"] == "STEP"):
-                            print(data)
-                            environment.on_receive_step_response(data)
-                except Exception:
-                    pass
-
-
-    def on_receive_image_response(self, raw_img_bytes):
-        '''Show image with cv2'''
-        im = cv2.imdecode(np.frombuffer(raw_img_bytes, np.uint8), cv2.IMREAD_COLOR)
-        cv2.imshow("AgentSocket Stream", im)
-        cv2.setWindowProperty("AgentSocket Stream", cv2.WND_PROP_TOPMOST, 1)
-        cv2.waitKey(1)
-        
-    def on_receive_step_response(self, json_response):
-        environment.on_step_received(json_response)
-
 
 
 if __name__ == '__main__':
